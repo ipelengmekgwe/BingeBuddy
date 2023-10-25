@@ -5,18 +5,36 @@ import rapidApiAgent from '../../api/rapidApiAgent';
 import styles from './Home.module.css';
 import LoadingComponents from '../../layout/LoadingComponents';
 import { Link } from 'react-router-dom';
+import { generate } from 'random-words';
 
 const Home = () => {
 
     const [shows, setShows] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const year: string = new Date().getFullYear().toString();
+    const searchString: string = generate(1)[0];
 
     useEffect(() => {
-        rapidApiAgent.Shows.search(year).then(response => {
-            setShows(response.d);
-            setLoading(false);
-        })
+        const loadShows = async () => {
+            const savedDate = localStorage.getItem('date');
+            const savedShowsJSON = localStorage.getItem('localShows');
+            const savedShows: any[] = savedShowsJSON ? JSON.parse(savedShowsJSON) : [];
+            const currentDate = new Date();
+            const timeDiff = savedDate ? (currentDate.getTime() - new Date(savedDate).getTime()) / (1000 * 60 * 60) : 0;
+            
+            if (timeDiff > 6 || !savedShows || savedShows.length === 0) {
+                rapidApiAgent.Shows.find(searchString).then(response => {
+                    setShows(response.results);
+                    setLoading(false);
+                    localStorage.setItem('localShows', JSON.stringify(response.results));
+                    localStorage.setItem('date', currentDate.toISOString());
+                });
+            } else {
+                setShows(savedShows);
+                setLoading(false);
+            }
+        };
+
+        loadShows();
     }, []);
     
     const [activePage, setActivePage] = useState(1);
@@ -72,14 +90,15 @@ const Home = () => {
                 {paginatedTVShows.map((show, index) => (
                     <Grid.Column key={index}>
                         <div className={styles.cardWrapper}>
-                            <Link to={`/details/${show.id}`}>
+                            <Link to={`/details/${show?.id?.replace(/\/(title)*\//g, "")}`}>
                                 <Card className={styles.showCard}>
                                     <div className={styles.imageWrapper}>
-                                        <Image src={show?.i?.imageUrl ?? 'bingebuddy-hr.png'} className={styles.showImage} />
+                                        <Image src={show?.image?.url ?? 'bingebuddy-hr.png'} className={styles.showImage} />
                                     </div>
                                     <Card.Content className={styles.showCardContent}>
-                                        <Card.Header>{show.l}</Card.Header>
-                                        <Card.Description>{show.q}</Card.Description>
+                                        <Card.Header>{show?.title}</Card.Header>
+                                        <Card.Description>{show?.titleType?.replace(/\b[a-z]/g, (x: any) => x.toUpperCase())}</Card.Description>
+                                        <Card.Meta>{show?.year}</Card.Meta>
                                     </Card.Content>
                                 </Card>
                             </Link>

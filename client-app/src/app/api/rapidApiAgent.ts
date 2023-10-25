@@ -25,7 +25,8 @@ const Shows = {
     popular: () => requests.get('/title/get-most-popular-tv-shows'),
     search: (searchStr: string) => requests.get('/auto-complete', {q: searchStr}),
     description: (imdbId: string) => requests.get('/title/get-overview-details', {tconst: imdbId}),
-    seasons: (imdbId: string) => requests.get('/title/get-seasons', {tconst: imdbId})
+    seasons: (imdbId: string) => requests.get('/title/get-seasons', {tconst: imdbId}),
+    find: (searchStr: string, limit: number = 20) => requests.get('/title/v2/find', {title: searchStr, limit: limit})
 }
 
 const rapidApiAgent = {

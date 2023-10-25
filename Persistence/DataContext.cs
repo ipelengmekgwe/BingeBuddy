@@ -10,5 +10,7 @@ namespace Persistence
         }
 
         public DbSet<Show> Shows { get; set; }
+        public DbSet<Season> Seasons { get; set; }
+        public DbSet<Episode> Episodes { get; set; }
     }
 }
